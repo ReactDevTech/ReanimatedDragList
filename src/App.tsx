@@ -1,10 +1,10 @@
 import React from 'react';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import {MARGIN} from './Config';
-import {Text, View} from 'react-native';
+import {Dimensions, Text, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import DragList from './DragList';
-
+const {width} =Dimensions.get('window')
 const tiles = [
   {id: 1},
   {id: 2},
@@ -31,10 +31,16 @@ const App = () => {
             editing={true}
             itemSeparateHeight={10}
             data={combinedTiles}
+            itemHeight={100}
+            itemWidth={width}
             renderItem={({item, index}) => {
-              return <Text>{index}</Text>;
+              return (
+                <View >
+                  <Text>{index}</Text>
+                </View>
+              );
             }}
-            onDragEnd={newArray => console.log('newArray::::', newArray)}
+            // onDragEnd={newArray => console.log('newArray::::', newArray)}
           />
         </GestureHandlerRootView>
       </SafeAreaView>

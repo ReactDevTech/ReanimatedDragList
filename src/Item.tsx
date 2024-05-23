@@ -36,8 +36,10 @@ interface ItemProps {
   itemSeparateHeight?: number;
   renderItem: ({item, index}: {item: any; index: any}) => React.ReactNode;
   oldData?: Array<object>;
-  onLongPress?:()=>void
-  onPressOut?:()=>void
+  onLongPress?: () => void;
+  onPressOut?: () => void;
+  itemHeight:number
+  itemWidth:number
 }
 
 const Item = ({
@@ -52,15 +54,17 @@ const Item = ({
   renderItem,
   oldData = [],
   onLongPress,
-  onPressOut
+  onPressOut,
+  itemHeight,
+  itemWidth
 }: ItemProps) => {
   const inset = useSafeAreaInsets();
   const containerHeight =
     Dimensions.get('window').height - inset.top - inset.bottom;
-  const contentHeight = (Object.keys(positions.value).length / COL) * SIZE;
+  const contentHeight = (Object.keys(positions.value).length / COL) * itemHeight ;
   const isGestureActive = useSharedValue(false);
 
-  const position = getPosition(positions.value[item?.id]!, itemSeparateHeight);
+  const position = getPosition(positions.value[item?.id]!, itemSeparateHeight,itemHeight);
   const translateX = useSharedValue(position.x);
   const translateY = useSharedValue(position.y);
 
@@ -68,7 +72,7 @@ const Item = ({
     () => positions.value[item?.id]!,
     newOrder => {
       if (!isGestureActive.value) {
-        const pos = getPosition(newOrder, itemSeparateHeight);
+        const pos = getPosition(newOrder, itemSeparateHeight,itemHeight);
         translateX.value = withTiming(pos.x, animationConfig);
         translateY.value = withTiming(pos.y, animationConfig);
       }
@@ -96,6 +100,7 @@ const Item = ({
           translateX.value,
           translateY.value,
           Object.keys(positions.value).length - 1,
+          itemHeight
         );
 
         // 2. We swap the positions
@@ -116,7 +121,7 @@ const Item = ({
 
         // 3. Scroll up and down if necessary
         const lowerBound = scrollY.value;
-        const upperBound = lowerBound + containerHeight - SIZE;
+        const upperBound = lowerBound + containerHeight - itemHeight;
         const maxScroll = contentHeight - containerHeight;
         const leftToScrollDown = maxScroll - scrollY.value;
         if (translateY.value < lowerBound) {
@@ -139,10 +144,16 @@ const Item = ({
       }
     },
     onEnd: () => {
-      const newPosition = getPosition(positions.value[item?.id]!, itemSeparateHeight);
+      const newPosition = getPosition(
+        positions.value[item?.id]!,
+        itemSeparateHeight,
+        itemHeight
+      );
       translateX.value = withTiming(newPosition.x, animationConfig, () => {
         if (onDragEnd) {
-          const oldIndex = oldData.findIndex((item: any) => item.id == item?.id);
+          const oldIndex = oldData.findIndex(
+            (item: any) => item.id == item?.id,
+          );
           const newIndex = positions?.value[item?.id] - 1;
           if (oldIndex !== -1 && newIndex >= 0 && newIndex < oldData.length) {
             const newData = [...oldData]; // Create a copy of the old array
@@ -166,8 +177,8 @@ const Item = ({
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%',
-      height: SIZE,
+      width: itemWidth,
+      height: itemHeight,
       zIndex,
       transform: [
         {translateX: translateX.value},
@@ -183,13 +194,14 @@ const Item = ({
       onLongPress={onLongPress}
       delayLongPress={200}
       onPressOut={onPressOut}>
-      <Animated.View style={style}>
-        <PanGestureHandler enabled={editing} onGestureEvent={onGestureEvent}>
-          <Animated.View style={StyleSheet.absoluteFill}>
-            {renderItem({item, index})}
-          </Animated.View>
-        </PanGestureHandler>
-      </Animated.View>
+      <PanGestureHandler
+        enabled={editing}
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={event => {
+          console.log(event.nativeEvent.state);
+        }}>
+        <Animated.View style={style}>{renderItem({item, index})}</Animated.View>
+      </PanGestureHandler>
     </TouchableOpacity>
   );
 };

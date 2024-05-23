@@ -15,21 +15,21 @@ export const animationConfig = {
   duration: 350,
 };
 
-export const getPosition = (position: number, itemSeprateHeight: number) => {
+export const getPosition = (position: number, itemSeprateHeight: number,itemHeight:number) => {
   'worklet';
 
   return {
-    x: position % COL === 0 ? 0 : SIZE * (position % COL),
-    y: Math.floor((position - 1) / COL) * (SIZE + itemSeprateHeight),
+    x: position % COL === 0 ? 0 : itemHeight * (position % COL),
+    y: Math.floor((position - 1) / COL) * (itemHeight + itemSeprateHeight),
   };
 };
 
-export const getOrder = (tx: number, ty: number, max: number) => {
+export const getOrder = (tx: number, ty: number, max: number,itemHeight:number) => {
   'worklet';
 
-  const x = Math.round(tx / SIZE) * SIZE;
-  const y = Math.round(ty / SIZE) * SIZE;
-  const row = Math.max(y, 0) / SIZE;
-  const col = Math.max(x, 0) / SIZE;
+  const x = Math.round(tx / itemHeight) * itemHeight;
+  const y = Math.round(ty / itemHeight) * itemHeight;
+  const row = Math.max(y, 0) / itemHeight;
+  const col = Math.max(x, 0) / itemHeight;
   return Math.min(row * COL + col, max);
 };

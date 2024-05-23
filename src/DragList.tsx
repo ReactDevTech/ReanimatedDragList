@@ -13,6 +13,8 @@ interface DragListProps {
   itemSeparateHeight?: number;
   data: Array<{id: number; }>;
   renderItem: ({item, index}: {item: any; index: number}) => React.ReactNode;
+  itemHeight:number
+  itemWidth:number
 }
 
 const DragList = ({
@@ -21,6 +23,8 @@ const DragList = ({
   itemSeparateHeight,
   data,
   renderItem,
+  itemHeight,
+  itemWidth
 }: DragListProps) => {
   const scrollY = useSharedValue(0);
   const scrollView = useAnimatedRef<any>();
@@ -67,6 +71,9 @@ const DragList = ({
             item={ele}
             itemSeparateHeight={itemSeparateHeight}
             renderItem={({item, index}) => renderItem({item, index})}
+            itemHeight={itemHeight}
+            itemWidth={itemWidth}
+            
           />
         );
       })}
