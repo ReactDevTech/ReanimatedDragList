@@ -1,43 +1,76 @@
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {MARGIN} from './Config';
-import Tile from './Tile';
-import SortableList from './SortableList';
-import {Text, View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { COL, Positions, SIZE } from './Config';
+import Item from './Item';
 
-const tiles = [
-  {id: 1, uri: 'https://google.com'},
-  {id: 2, uri: 'https://expo.io'},
-  {id: 3, uri: 'https://facebook.com'},
-  {id: 4, uri: 'https://docs.swmansion.com/react-native-reanimated/'},
-  {id: 5, uri: 'https://github.com'},
-  {id: 6, uri: 'https://reactnavigation.org/'},
-  {id: 7, uri: 'https://youtube.com'},
-  {id: 8, uri: 'https://twitter.com'},
-];
+interface DragListProps {
+  editing?: boolean;
+  onDragEnd?: (newArray: Array<object>) => void; // Modify onDragEnd function to accept old and new indices
+  itemSeparateHeight?: number;
+  data: Array<{id: number; }>;
+  renderItem: ({item, index}: {item: any; index: number}) => React.ReactNode;
+}
 
-const DragList = () => {
-  const combinedTiles = [
-    ...tiles,
-    ...tiles.map(tile => ({...tile, id: tile.id + 8})),
-  ];
+const DragList = ({
+  editing,
+  onDragEnd,
+  itemSeparateHeight,
+  data,
+  renderItem,
+}: DragListProps) => {
+  const scrollY = useSharedValue(0);
+  const scrollView = useAnimatedRef<any>();
+  const positions = useSharedValue<Positions>(
+    Object.assign(
+      {},
+      ...data.map((item, index) => ({[`${item.id}`]: item.id})),
+    ),
+  );
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: ({contentOffset: {y}}) => {
+      scrollY.value = y;
+    },
+  });
+
+  const handleDragEnd = (newArray: Array<object>) => {
+    if (onDragEnd) {
+      onDragEnd(newArray);
+    }
+  };
 
   return (
-    <SafeAreaView
-      style={{flex: 1, backgroundColor: 'white', paddingHorizontal: MARGIN}}>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <SortableList
-          editing={true}
-          itemSeparateHeight={10}
-          data={combinedTiles}
-          renderItem={({item, index}) => {
-            return <Text>{index}</Text>;
-          }}
-          onDragEnd={newArray => console.log('newArray::::', newArray)}
-        />
-      </GestureHandlerRootView>
-    </SafeAreaView>
+    <Animated.ScrollView
+      onScroll={onScroll}
+      ref={scrollView}
+      contentContainerStyle={{
+        height: Math.ceil(data.length / COL) * (SIZE + 30),
+      }}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      scrollEventThrottle={16}>
+      {data.map((ele, i) => {
+        return (
+          <Item
+            key={i.toString()}
+            positions={positions}
+            oldData={data}
+            editing={editing}
+            onDragEnd={handleDragEnd} // Pass handleDragEnd function
+            scrollView={scrollView}
+            scrollY={scrollY}
+            index={i}
+            item={ele}
+            itemSeparateHeight={itemSeparateHeight}
+            renderItem={({item, index}) => renderItem({item, index})}
+          />
+        );
+      })}
+    </Animated.ScrollView>
   );
 };
 

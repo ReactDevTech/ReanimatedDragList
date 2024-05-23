@@ -36,6 +36,8 @@ interface ItemProps {
   itemSeparateHeight?: number;
   renderItem: ({item, index}: {item: any; index: any}) => React.ReactNode;
   oldData?: Array<object>;
+  onLongPress?:()=>void
+  onPressOut?:()=>void
 }
 
 const Item = ({
@@ -49,6 +51,8 @@ const Item = ({
   itemSeparateHeight = 0,
   renderItem,
   oldData = [],
+  onLongPress,
+  onPressOut
 }: ItemProps) => {
   const inset = useSafeAreaInsets();
   const containerHeight =
@@ -176,13 +180,9 @@ const Item = ({
 
   return (
     <TouchableOpacity
-      onLongPress={() => {
-        if (editing) isGestureActive.value = true;
-      }}
+      onLongPress={onLongPress}
       delayLongPress={200}
-      onPressOut={() => {
-        isGestureActive.value = false;
-      }}>
+      onPressOut={onPressOut}>
       <Animated.View style={style}>
         <PanGestureHandler enabled={editing} onGestureEvent={onGestureEvent}>
           <Animated.View style={StyleSheet.absoluteFill}>
