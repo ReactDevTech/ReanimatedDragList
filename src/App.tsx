@@ -1,10 +1,10 @@
-import React from 'react';
-import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {MARGIN} from './Config';
+import React, {useState} from 'react';
 import {Dimensions, Text, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+import {MARGIN} from './Config';
 import DragList from './DragList';
-const {width} =Dimensions.get('window')
+const {width} = Dimensions.get('window');
 const tiles = [
   {id: 1},
   {id: 2},
@@ -14,35 +14,48 @@ const tiles = [
   {id: 6},
   {id: 7},
   {id: 8},
+  {id: 9},
+  {id: 10},
+  {id: 11},
+  {id: 12},
+  {id: 13},
+  {id: 14},
+  {id: 15},
 ];
 
 const App = () => {
-  const combinedTiles = [
-    ...tiles,
-    ...tiles.map(tile => ({...tile, id: tile.id + 8})),
-  ];
+  const combinedTiles = [...tiles];
+  const [editList, setEditList] = useState(false);
 
   return (
     <SafeAreaProvider style={{flex: 1}}>
       <SafeAreaView
-        style={{flex: 1, backgroundColor: 'white', paddingHorizontal: MARGIN}}>
-        <GestureHandlerRootView style={{flex: 1}}>
+        style={{flex: 1,paddingHorizontal: 20}}>
+          <Text
+            style={{
+              textAlign: 'right',
+              marginHorizontal: 10,
+              fontWeight: '600',
+              color: 'black',
+              textTransform: 'capitalize',
+            }}
+            onPress={() => setEditList(!editList)}>
+            {editList ? 'done' : 'edit'}
+          </Text>
           <DragList
-            editing={true}
+            editing={editList}
             itemSeparateHeight={10}
             data={combinedTiles}
-            itemHeight={100}
+            itemHeight={70}
             itemWidth={width}
             renderItem={({item, index}) => {
               return (
-                <View >
-                  <Text>{index}</Text>
+                <View>
+                  <Text>{item.id}</Text>
                 </View>
               );
             }}
-            // onDragEnd={newArray => console.log('newArray::::', newArray)}
           />
-        </GestureHandlerRootView>
       </SafeAreaView>
     </SafeAreaProvider>
   );

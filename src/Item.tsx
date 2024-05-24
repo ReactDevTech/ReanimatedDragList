@@ -1,29 +1,22 @@
-import React, {ReactNode, RefObject} from 'react';
-import {Alert, Dimensions, StyleSheet, TouchableOpacity} from 'react-native';
-import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useAnimatedReaction,
-  withSpring,
-  scrollTo,
-  withTiming,
-  useSharedValue,
-  runOnJS,
-} from 'react-native-reanimated';
+import React from 'react';
+import { Alert, Dimensions, TouchableOpacity } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Animated, {
+  runOnJS,
+  scrollTo,
+  useAnimatedGestureHandler,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  animationConfig,
-  COL,
-  getOrder,
-  getPosition,
-  Positions,
-  SIZE,
-} from './Config';
+import { animationConfig, COL, getOrder, getPosition } from './Config';
 
 interface ItemProps {
   positions?: any;
@@ -38,8 +31,8 @@ interface ItemProps {
   oldData?: Array<object>;
   onLongPress?: () => void;
   onPressOut?: () => void;
-  itemHeight:number
-  itemWidth:number
+  itemHeight: number;
+  itemWidth: number;
 }
 
 const Item = ({
@@ -56,15 +49,21 @@ const Item = ({
   onLongPress,
   onPressOut,
   itemHeight,
-  itemWidth
+  itemWidth,
 }: ItemProps) => {
   const inset = useSafeAreaInsets();
   const containerHeight =
     Dimensions.get('window').height - inset.top - inset.bottom;
-  const contentHeight = (Object.keys(positions.value).length / COL) * itemHeight ;
+  const contentHeight =
+    (Object.keys(positions.value).length / COL) * itemHeight;
   const isGestureActive = useSharedValue(false);
 
-  const position = getPosition(positions.value[item?.id]!, itemSeparateHeight,itemHeight);
+  const position = getPosition(
+    positions.value[item?.id]!,
+    itemSeparateHeight,
+    itemHeight,
+  );
+
   const translateX = useSharedValue(position.x);
   const translateY = useSharedValue(position.y);
 
@@ -72,7 +71,7 @@ const Item = ({
     () => positions.value[item?.id]!,
     newOrder => {
       if (!isGestureActive.value) {
-        const pos = getPosition(newOrder, itemSeparateHeight,itemHeight);
+        const pos = getPosition(newOrder, itemSeparateHeight, itemHeight);
         translateX.value = withTiming(pos.x, animationConfig);
         translateY.value = withTiming(pos.y, animationConfig);
       }
@@ -91,6 +90,7 @@ const Item = ({
       }
     },
     onActive: ({translationX, translationY}, ctx) => {
+      isGestureActive.value = true;
       // dont allow drag if we're done editing
       if (editing) {
         translateX.value = ctx.x + translationX;
@@ -100,7 +100,7 @@ const Item = ({
           translateX.value,
           translateY.value,
           Object.keys(positions.value).length - 1,
-          itemHeight
+          itemHeight,
         );
 
         // 2. We swap the positions
@@ -122,6 +122,7 @@ const Item = ({
         // 3. Scroll up and down if necessary
         const lowerBound = scrollY.value;
         const upperBound = lowerBound + containerHeight - itemHeight;
+        
         const maxScroll = contentHeight - containerHeight;
         const leftToScrollDown = maxScroll - scrollY.value;
         if (translateY.value < lowerBound) {
@@ -131,7 +132,9 @@ const Item = ({
           ctx.y -= diff;
           translateY.value = ctx.y + translationY;
         }
-        if (translateY.value > upperBound) {
+        console.log((translateY.value-100)>upperBound,'qdegw');
+        
+        if ((translateY.value-100) > upperBound) {
           const diff = Math.min(
             translateY.value - upperBound,
             leftToScrollDown,
@@ -144,10 +147,11 @@ const Item = ({
       }
     },
     onEnd: () => {
+      isGestureActive.value = false;
       const newPosition = getPosition(
         positions.value[item?.id]!,
         itemSeparateHeight,
-        itemHeight
+        itemHeight,
       );
       translateX.value = withTiming(newPosition.x, animationConfig, () => {
         if (onDragEnd) {
@@ -185,24 +189,16 @@ const Item = ({
         {translateY: translateY.value},
         {scale},
       ],
-      backgroundColor: 'pink',
+      backgroundColor: `rgba(0,0,256,0.${(index||0) + 2})`,
     };
   });
 
   return (
-    <TouchableOpacity
-      onLongPress={onLongPress}
-      delayLongPress={200}
-      onPressOut={onPressOut}>
-      <PanGestureHandler
-        enabled={editing}
-        onGestureEvent={onGestureEvent}
-        onHandlerStateChange={event => {
-          console.log(event.nativeEvent.state);
-        }}>
-        <Animated.View style={style}>{renderItem({item, index})}</Animated.View>
+      <PanGestureHandler enabled={editing} onGestureEvent={onGestureEvent}>
+        <Animated.View onLayout={event => {}} style={style}>
+          {renderItem({item, index})}
+        </Animated.View>
       </PanGestureHandler>
-    </TouchableOpacity>
   );
 };
 

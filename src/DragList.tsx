@@ -1,12 +1,14 @@
 import React from 'react';
+import { Dimensions } from 'react-native';
 import Animated, {
   useAnimatedRef,
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import { COL, Positions, SIZE } from './Config';
+import { Positions } from './Config';
 import Item from './Item';
-
+import { TouchableOpacity } from 'react-native-gesture-handler';
+const {height} = Dimensions.get('window')
 interface DragListProps {
   editing?: boolean;
   onDragEnd?: (newArray: Array<object>) => void; // Modify onDragEnd function to accept old and new indices
@@ -15,16 +17,20 @@ interface DragListProps {
   renderItem: ({item, index}: {item: any; index: number}) => React.ReactNode;
   itemHeight:number
   itemWidth:number
+  onLongPress?:()=>void; //
+  onPressOut?:()=>void; //
 }
 
 const DragList = ({
   editing,
   onDragEnd,
-  itemSeparateHeight,
+  itemSeparateHeight=0,
   data,
   renderItem,
   itemHeight,
-  itemWidth
+  itemWidth,
+  onLongPress,
+  onPressOut
 }: DragListProps) => {
   const scrollY = useSharedValue(0);
   const scrollView = useAnimatedRef<any>();
@@ -46,13 +52,14 @@ const DragList = ({
       onDragEnd(newArray);
     }
   };
-
+const totalContentHeight = data.length * (itemHeight + itemSeparateHeight);
   return (
     <Animated.ScrollView
       onScroll={onScroll}
       ref={scrollView}
       contentContainerStyle={{
-        height: Math.ceil(data.length / COL) * (SIZE + 30),
+        height:totalContentHeight,
+
       }}
       showsVerticalScrollIndicator={false}
       bounces={false}
@@ -73,6 +80,8 @@ const DragList = ({
             renderItem={({item, index}) => renderItem({item, index})}
             itemHeight={itemHeight}
             itemWidth={itemWidth}
+            onLongPress={onLongPress} 
+            onPressOut={onPressOut}
             
           />
         );
